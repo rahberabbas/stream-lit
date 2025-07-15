@@ -1,34 +1,39 @@
 import streamlit as st
 import requests
 
-# API_URL = "http://localhost:8001/query"
+# API endpoint for tag analysis
+API_URL = "https://together-cleanly-sponge.ngrok-free.app/analyze"
 
-API_URL = "https://together-cleanly-sponge.ngrok-free.app/query"
+st.title("Review Tag Analyzer 🏷️")
+st.write("Enter a review to generate tags with sentiment and color coding.")
 
-st.title("Natural's Q&A Bot 🧠💬")
-st.write("Ask a question and get an intelligent response!")
+# Track last input to avoid duplicate requests
+if "last_review" not in st.session_state:
+    st.session_state.last_review = ""
 
-# Session state to prevent re-running multiple times
-if "last_question" not in st.session_state:
-    st.session_state.last_question = ""
+# Input field for the review
+user_review = st.text_input("Enter your review:", key="review_input")
 
-# Text input (auto submits on Enter)
-user_question = st.text_input("Enter your question:", key="question_input")
-
-# Trigger when Enter is pressed (text input changes)
-if user_question.strip() != "" and user_question != st.session_state.last_question:
-    st.session_state.last_question = user_question  # Save to session to avoid re-submission
-    with st.spinner("Thinking... 🤔"):
+# If review changes, call the API
+if user_review.strip() != "" and user_review != st.session_state.last_review:
+    st.session_state.last_review = user_review
+    with st.spinner("Analyzing review..."):
         try:
-            response = requests.post(API_URL, json={"question": user_question})
+            response = requests.post(API_URL, json={"review": user_review})
             response.raise_for_status()
+            tags = response.json()
 
-            data = response.json()
-            st.success("Answer Received!")
-            st.markdown(f"**Answer:** {data.get('answer')}")
-            # st.markdown(f"**Category:** {data.get('category')}")  # Optional
-            # st.markdown(f"**Matched Question:** {data.get('matched_question')}")  # Optional
-            # st.markdown(f"**Confidence:** {round(data.get('confidence', 0) * 100, 2)}%")  # Optional
+            if tags:
+                st.success("Tags generated:")
+                for tag in tags:
+                    st.markdown(
+                        f"<div style='background-color:{tag['color_hex']};"
+                        f"padding: 8px; border-radius: 5px; margin-bottom: 5px;'>"
+                        f"<strong>{tag['tag']}</strong> - {tag['sentiment'].capitalize()}</div>",
+                        unsafe_allow_html=True
+                    )
+            else:
+                st.info("No relevant tags were generated for this review.")
 
         except requests.exceptions.RequestException as e:
             st.error(f"API Error: {e}")
