@@ -5,7 +5,7 @@ import requests
 API_URL = "https://together-cleanly-sponge.ngrok-free.app/analyze"
 
 st.title("Review Tag Analyzer 🏷️")
-st.write("Enter a review to generate tags with sentiment and color coding.")
+st.write("Enter a review to generate tags, sentiment, and confidence score.")
 
 # Track last input to avoid duplicate requests
 if "last_review" not in st.session_state:
@@ -21,19 +21,22 @@ if user_review.strip() != "" and user_review != st.session_state.last_review:
         try:
             response = requests.post(API_URL, json={"review": user_review})
             response.raise_for_status()
-            tags = response.json()
+            result = response.json()
 
-            if tags:
-                st.success("Tags generated:")
+            # Extracted values from response
+            tags = result.get("tags", [])
+            sentiment = result.get("sentiment", "unknown").capitalize()
+            accuracy = result.get("accuracy", 0.0)
+
+            st.markdown(f"**Sentiment:** `{sentiment}`")
+            st.markdown(f"**Confidence:** `{accuracy:.2f}`")
+
+            if tags and tags != ["no tag"]:
+                st.success("Tags identified:")
                 for tag in tags:
-                    st.markdown(
-                        f"<div style='background-color:{tag['color_hex']};"
-                        f"padding: 8px; border-radius: 5px; margin-bottom: 5px;'>"
-                        f"<strong>{tag['tag']}</strong> - {tag['sentiment'].capitalize()}</div>",
-                        unsafe_allow_html=True
-                    )
+                    st.markdown(f"- ✅ **{tag}**")
             else:
-                st.info("No relevant tags were generated for this review.")
+                st.info("No specific tags found for this review.")
 
         except requests.exceptions.RequestException as e:
             st.error(f"API Error: {e}")
