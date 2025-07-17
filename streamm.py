@@ -19,7 +19,7 @@ if user_review.strip() != "" and user_review != st.session_state.last_review:
     st.session_state.last_review = user_review
     with st.spinner("Analyzing review..."):
         try:
-            response = requests.post(API_URL, json={"review": user_review})
+            response = requests.post(API_URL, json={"review_text": user_review})
             response.raise_for_status()
             result = response.json()
 
