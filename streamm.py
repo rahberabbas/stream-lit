@@ -2,7 +2,7 @@ import streamlit as st
 import requests
 
 # API endpoint for tag analysis
-API_URL = "https://together-cleanly-sponge.ngrok-free.app/analyze"
+API_URL = "http://103.189.173.28:8001/california/analyze"
 
 st.title("Review Tag Analyzer 🏷️")
 st.write("Enter a review to generate tags, sentiment, and confidence score.")
